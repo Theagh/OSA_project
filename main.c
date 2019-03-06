@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
                 fprintf(stderr,"Please, specify a waiting interval after -%c\n", optopt);
             else if ( optopt=='l') 
                 fprintf(stderr,"Please, specify max number of launches after -%c\n", optopt);
-            
+            exit(-1);
 			default:
 				exit(-1);
 				break;
