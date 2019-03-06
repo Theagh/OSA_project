@@ -34,11 +34,15 @@ int main(int argc, char const *argv[])
 			case '?':
 				// help();
 				break;
-            case 'h':
-                // help();
-                exit(0);
+            case ':':
+            if ( optopt=='t')
+                fprintf(stderr,"Please, specify a time format after -%c\n", optopt);
+            else if ( optopt=='i') 
+                fprintf(stderr,"Please, specify a waiting interval after -%c\n", optopt);
+            else if ( optopt=='l') 
+                fprintf(stderr,"Please, specify max number of launches after -%c\n", optopt);
+            
 			default:
-				
 				exit(-1);
 				break;
 		}
