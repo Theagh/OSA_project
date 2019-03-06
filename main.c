@@ -14,6 +14,7 @@ int main(int argc, char const *argv[])
     char c;
     unsigned int interval=DEF_INTERVAL, limit=0;
     bool ret_code=false;
+    const char* time_format=malloc(50);
 	while((c=getopt(argc, argv, "+t:i:l:c"))!=-1){
 		
 		switch (c)
@@ -26,6 +27,9 @@ int main(int argc, char const *argv[])
 				break;
             case 'c':
                 ret_code=true;
+				break;
+            case 't':
+                time_format=optarg;
 				break;
 			case '?':
 				// help();
