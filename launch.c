@@ -19,10 +19,9 @@ int launch(const char* argv[],char* output){
             close(1);
             dup(tube[1]);
             execv(argv, &argv[1] );
-        default:
-            close(0);
-            dup(tube[2]);
-        
+        default:;
+            int rd=0;
+            while( rd+=read(0, &output[rd],128)>0);  
             wait(&ret_val);
             if(WIFEXITED(ret_val))
                 return WEXITSTATUS(ret_val);
