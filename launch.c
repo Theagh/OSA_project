@@ -1,8 +1,20 @@
 #include "launch.h"
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <sys/select.h>
+#include <time.h>
+#include<fcntl.h> 
 
-int launch(const char* argv[],char* output){
+void mssleep(unsigned long ms)
+{
+    struct timeval tv;
+    tv.tv_sec=ms/1000;
+    tv.tv_usec=(ms-tv.tv_sec*1000)*1000;
+    select(0,NULL,NULL,NULL,&tv);
+}
+
+int launch(char* const argv[],Output* output){
     
     int ret_val;
     int tube[2];
@@ -16,12 +28,28 @@ int launch(const char* argv[],char* output){
             perror("Fork error");
             return -1;
         case 0:
-            close(1);
-            dup(tube[1]);
-            execv(argv, &argv[1] );
+            // printf("before child fork\n");
+            dup2(tube[1],1);
+            // fcntl(1, F_SETFL, O_NONBLOCK);
+            // close(3);
+            // printf("before child fork\n");
+
+            if(execvp(argv[0], &argv[1] )==-1){
+                fprintf(stderr,"%s %s\n", argv[0], argv[1]);
+                perror("execv");
+            }
         default:;
-            int rd=0;
-            while( rd+=read(0, &output[rd],128)>0);  
+            int rd=0, rd_tmp=0;
+            close(tube[1]);
+            // fcntl(tube[0], F_SETFL, O_NONBLOCK);
+            while( ( rd_tmp+=read(tube[0], &output->txt[rd],128) )> 0)
+            {
+                rd+=rd_tmp;
+                rd_tmp=0;
+                if( rd >= output->size )
+                    resize( &output, rd+128 );
+
+            }
             wait(&ret_val);
             if(WIFEXITED(ret_val))
                 return WEXITSTATUS(ret_val);

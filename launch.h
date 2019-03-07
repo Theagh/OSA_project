@@ -1,7 +1,8 @@
 #ifndef LAUNCH_
 #define LAUNCH_
+#include "output.h"
 
-int launch(const char* argv[],char* output);
-
+void mssleep(unsigned long ms );
+int launch(char* const argv[],Output* output);
 
 #endif
