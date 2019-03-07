@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <sys/select.h>
-
+#include <string.h>
 #include "launch.h"
 #include "output.h"
 
@@ -15,58 +15,73 @@
 int main(int argc, char *const *argv)
 {
     char c;
-    unsigned int interval=DEF_INTERVAL, limit=0;
+    int interval=DEF_INTERVAL, limit=0;
     bool ret_code=false;
-    char* time_format=malloc(50);
+    if(argc==1 ) {
+        fprintf(stderr, "No arguments\n");
+        exit(EXIT_FAILURE);
+    }
+    char* time_format;
 	while((c=getopt(argc, argv, "+t:i:l:c"))!=-1){
 		
 		switch (c)
 		{
 			case 'i':
                 interval=atoi(optarg);
+                if( interval <= 0 ){
+                    fprintf(stderr, "Interval should be more than 0. %d\n");
+                    exit(EXIT_FAILURE);
+                }
                 break;
 			case 'l':
                 limit=atoi(optarg);
+                if( limit < 0 ){
+                    fprintf(stderr, "Limit should be non-negative. \n");
+                    exit(EXIT_FAILURE);
+                }
 				break;
             case 'c':
                 ret_code=true;
 				break;
             case 't':
                 time_format=optarg;
+                
 				break;
 			case '?':
-				// help();
+                fprintf(stderr,"Please, specify a time format after\n");
 				break;
             case ':':
-            if ( optopt=='t')
-                fprintf(stderr,"Please, specify a time format after -%c\n", optopt);
-            else if ( optopt=='i') 
-                fprintf(stderr,"Please, specify a waiting interval after -%c\n", optopt);
-            else if ( optopt=='l') 
-                fprintf(stderr,"Please, specify max number of launches after -%c\n", optopt);
-            exit(-1);
+            
+            exit(1);
 			default:
-				exit(-1);
+                printf("exiting");
+				exit(1);
 				break;
 		}
 	}
-    char **cmd=argv+optind;
-    int i=0;
-    while(cmd[i]){
-        printf("%s ", cmd[i++]);
+
+    char ** cmd=argv+optind;
+    if( argc-optind==0 ){
+        fprintf(stderr,"No executable specified\n");
+        exit(EXIT_FAILURE);
     }
     
     Output *out1=initOutput(),*out2=initOutput();
-    printf("\nrun #%d\n", i);
-    int r_code=launch(cmd, out1);
+
+    int r_code, r_codeOld=launch(cmd, out1);
     copyOutput(out1,out2);
     write(1,out1->txt, out1->size);
-
+    if(ret_code) printf("exit: %d", r_codeOld);
     for(int i=1;i<limit;i++){
         printf("\nrun #%d\n", i);
         int r_code=launch(cmd, out1);
-        copyOutput(out1,out2);
-        write(1,out1->txt, out1->size);
+        if( compareOutput(out1,out2) || r_code!=r_codeOld ){
+            write(1,out1->txt, out1->size);
+            copyOutput(out1,out2);
+        }
+        r_codeOld=r_code;
+        if(ret_code) printf("exit: %d", r_codeOld);
+
         freeOutput(&out1);
         out1=initOutput();
         mssleep(interval);

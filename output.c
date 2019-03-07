@@ -21,7 +21,7 @@ void resize(Output** out,unsigned int newSize ){
 void copyOutput(Output* out1,Output* out2)
 {
     if( out2->size< out1->size){
-        realloc( out2->txt, out1->size );
+        out2->txt=realloc( out2->txt, out1->size );
         out2->size=out1->size;
     }
     for(int i = 0; i < out1->size ; i++)
@@ -30,7 +30,7 @@ void copyOutput(Output* out1,Output* out2)
 
 int compareOutput( Output* out1 ,Output* out2 ){
     if( strlen(out1->txt)!=strlen(out2->txt) )
-        return 0;
+        return 1;
     
     return strncmp(out1->txt,out2->txt, out1->size );
     

@@ -8,14 +8,11 @@
 
 void mssleep(unsigned long ms)
 {
-    struct timeval tv;
-    tv.tv_sec=ms/1000;
-    tv.tv_usec=(ms-tv.tv_sec*1000)*1000;
-    select(0,NULL,NULL,NULL,&tv);
+    usleep(ms*1000);
 }
 
-int launch(char* const argv[],Output* output){
-    
+int launch(char** argv,Output* output)
+{
     int ret_val;
     int tube[2];
     if(pipe(tube)==-1){
@@ -34,8 +31,8 @@ int launch(char* const argv[],Output* output){
             // close(3);
             // printf("before child fork\n");
 
-            if(execvp(argv[0], &argv[1] )==-1){
-                fprintf(stderr,"%s %s\n", argv[0], argv[1]);
+            if(execvp(argv[0], &argv[0] )==-1){
+                // fprintf(stderr,"%s %s\n", argv[0], argv[1]);
                 perror("execv");
             }
         default:;

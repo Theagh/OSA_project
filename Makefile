@@ -1,6 +1,6 @@
 SOURCES=$(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
-EXEC=detect
+EXEC=detecter
 
 
 %.o : %.c 

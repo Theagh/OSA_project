@@ -3,6 +3,6 @@
 #include "output.h"
 
 void mssleep(unsigned long ms );
-int launch(char* const argv[],Output* output);
+int launch(char** argv,Output* output);
 
 #endif
