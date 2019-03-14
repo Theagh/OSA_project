@@ -11,10 +11,9 @@ void mssleep(unsigned long ms)
     usleep(ms*1000);
 }
 
-int launch(char** argv,Output* output)
+int launch(char** argv,Output* output, int* read_bytes)
 {
-    int ret_val;
-    int tube[2];
+    int ret_val, tube[2];
     if(pipe(tube)==-1){
         perror("Couldn't create pipe");
         return -1;
@@ -24,29 +23,24 @@ int launch(char** argv,Output* output)
         case -1:
             perror("Fork error");
             return -1;
-        case 0:
-            // printf("before child fork\n");
+        case 0://Child
             dup2(tube[1],1);
-            // fcntl(1, F_SETFL, O_NONBLOCK);
-            // close(3);
-            // printf("before child fork\n");
-
-            if(execvp(argv[0], &argv[0] )==-1){
-                // fprintf(stderr,"%s %s\n", argv[0], argv[1]);
-                perror("execv");
-            }
-        default:;
+            close(3);
+            close(tube[0]);
+            close(tube[1]);
+            execvp(argv[0], &argv[0]);
+            break;
+        default:;//Parent
             int rd=0, rd_tmp=0;
             close(tube[1]);
-            // fcntl(tube[0], F_SETFL, O_NONBLOCK);
-            while( ( rd_tmp+=read(tube[0], &output->txt[rd],128) )> 0)
+            while( ( rd_tmp+=read(tube[0], &output->txt[rd],128-rd%128) )> 0)
             {
                 rd+=rd_tmp;
                 rd_tmp=0;
-                if( rd >= output->size )
-                    resize( &output, rd+128 );
-
+                if( rd > (int) output->size-1 )
+                    resize( &output, rd*2 );
             }
+            *read_bytes=rd;
             wait(&ret_val);
             if(WIFEXITED(ret_val))
                 return WEXITSTATUS(ret_val);
